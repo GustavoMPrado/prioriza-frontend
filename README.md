@@ -1,145 +1,119 @@
-# Task Manager — Full Stack (V2: JWT + Scaling + Observability + AI)
+# Frontend do Prioriza
 
-This is the frontend of my Task Manager project, which is my main full-stack portfolio project.
+Este é o frontend do Prioriza, meu projeto de gerenciamento de atividades.
 
-I built this version to connect the React frontend to my Spring Boot API with JWT authentication, improve the user experience, and demonstrate a complete flow running in production.
+Fiz essa parte para consumir a API do backend, permitir login, listar atividades, cadastrar, editar, filtrar e organizar as informações de um jeito simples e funcional.
 
-- **Backend:** Java 21 · Spring Boot · PostgreSQL · Flyway · Actuator  
-- **Frontend:** React · Vite · TypeScript · Tailwind CSS  
-- **Production(current setup):** Render (API) + GitHub Pages (Frontend)
+O objetivo aqui não foi inventar moda, e sim montar uma interface que funcionasse bem no fluxo do sistema e conversasse direito com a API.
 
----
-
-## Live Demo (Production)
-
-- **Frontend (GitHub Pages):** https://gustavomprado.github.io/task-manager-frontend/
-- **API (Render):** https://task-manager-api-njza.onrender.com  
-  - Health: https://task-manager-api-njza.onrender.com/actuator/health  
-  - Root status: https://task-manager-api-njza.onrender.com/  
-    - Returns: `{"status":"ok","service":"task-manager-api"}`
-
-> **Note (Render free tier)**: If the API stays idle for some time, the first request may take longer **(cold start, usually around 30s to 60s)**. The API stays on Render, and the production PostgreSQL database was migrated to **Neon** to avoid Render Free Postgres expiration while keeping the same public API URL.
+- **Backend:** Java 21, Spring Boot e PostgreSQL
+- **Frontend:** React, Vite, TypeScript e Tailwind CSS
+- **Deploy:** GitHub Pages no frontend e Render na API
 
 ---
 
-## V2 Highlights (Security + Resilience + AI)
-In V2, I focused on making the frontend work better with the secured backend (JWT), improving resilience/UX, and adding the AI priority suggestion flow.
+## Acesso em produção
 
-### AI — Priority suggestion (JWT-protected)
-- Button **"Sugerir prioridade"** in the task form calls `POST /ai/suggest-priority`
-- Payload: `{ title, description }`
-- Response: `{ priority, reason }`
-- The form auto-fills **priority** and displays the **reason**
-- I kept the backend AI endpoint usable in demo mode (deterministic mock) when \OPENAI_API_KEY` is not set, so the feature still works in portfolio demos`
+- **Frontend:** https://gustavomprado.github.io/task-manager-frontend/
+- **API:** https://task-manager-api-njza.onrender.com
+- **Health da API:** https://task-manager-api-njza.onrender.com/actuator/health
 
-### JWT Auth (Frontend + Backend)
-- Login via `POST /auth/login` returns `{ token }`
-- The frontend stores the token in localStorage (key: \task_manager_token`)`
-- Requests to `/tasks/**` use `Authorization: Bearer <token>`
-- If the API returns **401**, the frontend clears the token and redirects back to login (session expired)
-
-### Resilience / Scaling
-- **Login rate limit**: after **5 attempts/minute/IP**, `/auth/login` returns **429**
-- **Pagination cap**: requests with very large `size` are capped (e.g., `size=999` → effective `size=50`)
-- **Flyway migrations**: schema versioned (includes `V2__add_indexes_timestamps.sql`)
-
-### Observability
-- The frontend depends on the backend health endpoint ( + crase + GET /actuator/health + crase + ) for production checks, and it should return + crase + UP + crase + ``
-
-### Security docs / Pentest evidence (Backend)
-- Security summary and controls: `SECURITY.md` (backend repo)
-- Controlled local pentest report (Kali): `docs/PENTEST.md` (backend repo)
-- Pentest evidence files: `docs/pentest-evidencias/` (backend repo)
+> Como a API está no plano gratuito do Render, a primeira requisição pode demorar um pouco quando o serviço fica parado.
 
 ---
 
-## Features
+## O que a aplicação faz
 
-- **Full CRUD:** create, list (paginated), get by id, update (PUT), partial update (PATCH), delete
-- **List UI:** pagination, search (`q`), filters (status/priority), sorting, page size
-- **Inline updates:** PATCH **status** and **priority** directly from the list
-- **UX:** loading overlay, toast feedback, friendly error messages
-- **Security UX:** login screen, protected routes, session-expired handling (401)
-- **AI UX:** one-click priority suggestion with explanation (reason)
-
----
-
-## Quick start (Local)
-
-### Option 1 — Frontend + Backend (two terminals)
-
-**Terminal 1 (Backend):**
-```powershell
-cd C:\workspace\springboot-api
-docker compose up -d --build
-```
-
-Expected result:
-- Containers `api` and `postgres` start successfully
-- API at `http://localhost:8081`
-
-**Terminal 2 (Frontend):**
-```powershell
-cd C:\workspace\task-manager-frontend
-npm install
-npm run dev
-```
-
-Expected result:
-- Vite dev server at `http://localhost:5173`
+- login
+- listagem de atividades
+- cadastro de atividade
+- edição de atividade
+- exclusão de atividade
+- busca por termo
+- filtro por status
+- filtro por prioridade
+- paginação
+- ordenação
+- atualização rápida de status e prioridade pela lista
 
 ---
 
-## Configuration
+## Sobre a interface
 
-### Production API URL
-In production, this frontend uses \VITE_API_URL` to call the backend API.`
+No frontend, foquei principalmente em manter o fluxo de uso simples.
 
-- `.env.production`:
-  - `VITE_API_URL=https://task-manager-api-njza.onrender.com`
+A ideia foi deixar a navegação direta e cuidar do básico que faz diferença no uso da aplicação, como feedback visual de carregamento, mensagens de sucesso e erro, proteção de rotas e tratamento de sessão expirada.
 
-### Dev proxy
-In development, the frontend calls `/api/...` and Vite proxies it to `http://localhost:8081` (and strips the `/api` prefix).
+Quando a autenticação expira ou o token fica inválido, o usuário volta para a tela de login.
 
 ---
 
-## JWT Flow (How I test it in production)
+## Como rodar localmente
 
-1) Open the frontend:
-- https://gustavomprado.github.io/task-manager-frontend/
+### Backend
 
-2) Login
-- The app should authenticate, store the token, and load the task list.
+    cd C:\workspace\springboot-api
+    docker compose up -d --build
 
-3) Validate protected behavior
-- Missing or invalid token → the app returns to login
-- If the API returns 401, the token is cleared and the app redirects back to login.
+Resultado esperado:
+- a API sobe localmente em `http://localhost:8081`
 
----
+### Frontend
 
-## Screenshots (V2)
+    cd C:\workspace\task-manager-frontend
+    npm install
+    npm run dev
 
-![V2 Login](./screenshots/10-v2-login.png)
-![V2 List](./screenshots/11-v2-list.png)
-![V2 Create Toast](./screenshots/12-v2-create-toast.png)
-![V2 Session Expired](./screenshots/13-v2-session-expired.png)
-![V2 AI Suggest Priority (PROD)](./screenshots/2026-02-11_ai-suggest-priority_prod.png)
+Resultado esperado:
+- o frontend sobe em `http://localhost:5173`
 
 ---
 
-## Repositories
+## Configuração
 
-- Backend: https://github.com/GustavoMPrado/task-manager-api
-- Frontend: https://github.com/GustavoMPrado/task-manager-frontend
+Em produção, o frontend usa esta variável para acessar a API:
+
+    VITE_API_URL=https://task-manager-api-njza.onrender.com
+
+No ambiente de desenvolvimento, as chamadas `/api/...` são redirecionadas pelo Vite para `http://localhost:8081`.
 
 ---
 
-## Contact
+## Como testar
+
+1. Abra o frontend em produção  
+   https://gustavomprado.github.io/task-manager-frontend/
+
+2. Faça login
+
+3. Teste o fluxo de listagem, cadastro, edição, filtros e exclusão
+
+4. Valide o comportamento de rota protegida  
+   - sem token ou com token inválido, a aplicação volta para o login
+
+---
+
+## Capturas de tela
+
+![Login](./screenshots/10-v2-login.png)
+![Lista](./screenshots/11-v2-list.png)
+![Criação com aviso](./screenshots/12-v2-create-toast.png)
+![Sessão expirada](./screenshots/13-v2-session-expired.png)
+
+---
+
+## Repositórios
+
+- **Backend:** https://github.com/GustavoMPrado/task-manager-api
+- **Frontend:** https://github.com/GustavoMPrado/task-manager-frontend
+
+---
+
+## Contato
 
 Gustavo Marinho Prado Alves  
-GitHub: https://github.com/GustavoMPrado
+GitHub: https://github.com/GustavoMPrado  
 Email: gmarinhoprado@gmail.com
-
 
 
 
