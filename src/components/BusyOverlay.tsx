@@ -3,7 +3,10 @@ type BusyOverlayProps = {
   label?: string;
 };
 
-export default function BusyOverlay({ open, label = "Processando..." }: BusyOverlayProps) {
+export default function BusyOverlay({
+  open,
+  label = "Processando...",
+}: BusyOverlayProps) {
   if (!open) return null;
 
   return (

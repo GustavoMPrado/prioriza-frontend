@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  base: "/task-manager-frontend/",
+  base: "/prioriza-frontend/",
   plugins: [tailwindcss(), react()],
   server: {
     proxy: {

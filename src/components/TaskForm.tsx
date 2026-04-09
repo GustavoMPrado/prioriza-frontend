@@ -1,44 +1,52 @@
 import { useEffect, useMemo, useState } from "react";
 import type {
-  Task,
-  TaskCreatePayload,
-  TaskPriority,
-  TaskStatus,
-  TaskUpdatePayload,
+  Atividade,
+  AtualizarAtividadePayload,
+  CriarAtividadePayload,
+  PrioridadeAtividade,
+  StatusAtividade,
 } from "../api/taskApi";
-import { suggestPriority } from "../api/taskApi";
 
 type TaskFormProps = {
-  onCreate: (payload: TaskCreatePayload) => Promise<void> | void;
-  onUpdate: (id: number, payload: TaskUpdatePayload) => Promise<void> | void;
-  editingTask: Task | null;
+  onCreate: (payload: CriarAtividadePayload) => Promise<void> | void;
+  onUpdate: (id: number, payload: AtualizarAtividadePayload) => Promise<void> | void;
+  atividadeEmEdicao: Atividade | null;
   onCancelEdit?: () => void;
   setError?: (msg: string) => void;
   busy?: boolean;
 };
 
-const STATUS_OPTIONS: TaskStatus[] = ["TODO", "DOING", "DONE"];
-const PRIORITY_OPTIONS: TaskPriority[] = ["LOW", "MEDIUM", "HIGH"];
+const STATUS_OPTIONS: StatusAtividade[] = ["A_FAZER", "EM_ANDAMENTO", "CONCLUIDA"];
+const PRIORITY_OPTIONS: PrioridadeAtividade[] = ["BAIXA", "MEDIA", "ALTA"];
+
+function getStatusLabel(status: StatusAtividade): string {
+  if (status === "A_FAZER") return "A fazer";
+  if (status === "EM_ANDAMENTO") return "Em andamento";
+  return "Concluída";
+}
+
+function getPriorityLabel(priority: PrioridadeAtividade): string {
+  if (priority === "BAIXA") return "Baixa";
+  if (priority === "MEDIA") return "Média";
+  return "Alta";
+}
 
 export default function TaskForm({
   onCreate,
   onUpdate,
-  editingTask,
+  atividadeEmEdicao,
   onCancelEdit,
   setError,
   busy = false,
 }: TaskFormProps) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [status, setStatus] = useState<TaskStatus>("TODO");
-  const [priority, setPriority] = useState<TaskPriority>("LOW");
-  const [dueDate, setDueDate] = useState("");
+  const [titulo, setTitulo] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [status, setStatus] = useState<StatusAtividade>("A_FAZER");
+  const [prioridade, setPrioridade] = useState<PrioridadeAtividade>("BAIXA");
+  const [dataLimite, setDataLimite] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const [aiBusy, setAiBusy] = useState(false);
-  const [aiReason, setAiReason] = useState<string>("");
-
-  const isEditMode = !!editingTask;
+  const isEditMode = !!atividadeEmEdicao;
   const disabled = submitting || busy;
 
   const inputClass = useMemo(
@@ -54,52 +62,52 @@ export default function TaskForm({
   );
 
   function resetForm() {
-    setTitle("");
-    setDescription("");
-    setStatus("TODO");
-    setPriority("LOW");
-    setDueDate("");
-    setAiReason("");
+    setTitulo("");
+    setDescricao("");
+    setStatus("A_FAZER");
+    setPrioridade("BAIXA");
+    setDataLimite("");
   }
 
   useEffect(() => {
-    if (!editingTask) {
+    if (!atividadeEmEdicao) {
       resetForm();
       return;
     }
 
-    setTitle(editingTask.title ?? "");
-    setDescription(editingTask.description ?? "");
-    setStatus(editingTask.status ?? "TODO");
-    setPriority(editingTask.priority ?? "LOW");
-    setDueDate(editingTask.dueDate ? editingTask.dueDate.slice(0, 10) : "");
-    setAiReason("");
-  }, [editingTask]);
+    setTitulo(atividadeEmEdicao.titulo ?? "");
+    setDescricao(atividadeEmEdicao.descricao ?? "");
+    setStatus(atividadeEmEdicao.status ?? "A_FAZER");
+    setPrioridade(atividadeEmEdicao.prioridade ?? "BAIXA");
+    setDataLimite(
+      atividadeEmEdicao.dataLimite ? atividadeEmEdicao.dataLimite.slice(0, 10) : ""
+    );
+  }, [atividadeEmEdicao]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (disabled) return;
 
-    if (!title.trim()) {
+    if (!titulo.trim()) {
       setError?.("Título é obrigatório.");
       return;
     }
 
-    const payload: TaskCreatePayload = {
-      title: title.trim(),
-      description: description.trim() || null,
+    const payload: CriarAtividadePayload = {
+      titulo: titulo.trim(),
+      descricao: descricao.trim() || null,
       status,
-      priority,
-      dueDate: dueDate || null,
+      prioridade,
+      dataLimite: dataLimite || null,
     };
 
     try {
       setError?.("");
       setSubmitting(true);
 
-      if (isEditMode && editingTask) {
-        const updatePayload: TaskUpdatePayload = payload;
-        await onUpdate(editingTask.id, updatePayload);
+      if (isEditMode && atividadeEmEdicao) {
+        const updatePayload: AtualizarAtividadePayload = payload;
+        await onUpdate(atividadeEmEdicao.id, updatePayload);
       } else {
         await onCreate(payload);
         resetForm();
@@ -116,44 +124,13 @@ export default function TaskForm({
     resetForm();
   }
 
-  async function handleSuggestPriority() {
-    if (disabled || aiBusy) return;
-
-    if (!title.trim() && !description.trim()) {
-      setError?.("Preencha título e/ou descrição para sugerir a prioridade.");
-      return;
-    }
-
-    try {
-      setError?.("");
-      setAiReason("");
-      setAiBusy(true);
-
-      const res = await suggestPriority({
-        title: title.trim(),
-        description: description.trim() || null,
-      });
-
-      setPriority(res.priority);
-      setAiReason(res.reason || "");
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Falha ao sugerir prioridade.";
-      setError?.(String(msg));
-    } finally {
-      setAiBusy(false);
-    }
-  }
-
   return (
     <>
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <h2 className="m-0 text-xl font-semibold tracking-tight">
-          {isEditMode && editingTask
-            ? `Editando tarefa #${editingTask.id}`
-            : "Nova tarefa"}
+          {isEditMode && atividadeEmEdicao
+            ? `Editando atividade #${atividadeEmEdicao.id}`
+            : "Nova atividade"}
         </h2>
 
         {isEditMode ? (
@@ -175,10 +152,9 @@ export default function TaskForm({
           <label className="text-xs font-medium opacity-90">Título</label>
           <input
             placeholder="Ex: Pagar contas"
-            value={title}
+            value={titulo}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setTitle(e.target.value);
-              if (aiReason) setAiReason("");
+              setTitulo(e.target.value);
             }}
             className={inputClass}
             disabled={disabled}
@@ -189,10 +165,9 @@ export default function TaskForm({
           <label className="text-xs font-medium opacity-90">Descrição</label>
           <textarea
             placeholder="Detalhes (opcional)"
-            value={description}
+            value={descricao}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-              setDescription(e.target.value);
-              if (aiReason) setAiReason("");
+              setDescricao(e.target.value);
             }}
             rows={3}
             className={`${inputClass} resize-y`}
@@ -206,65 +181,52 @@ export default function TaskForm({
             <select
               value={status}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setStatus(e.target.value as TaskStatus)
+                setStatus(e.target.value as StatusAtividade)
               }
               disabled={disabled}
               className={selectClass}
             >
-              {STATUS_OPTIONS.map((s) => (
-                <option key={s} value={s} className="text-zinc-900">
-                  {s}
+              {STATUS_OPTIONS.map((statusOption) => (
+                <option
+                  key={statusOption}
+                  value={statusOption}
+                  className="text-zinc-900"
+                >
+                  {getStatusLabel(statusOption)}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="grid gap-2">
-            <div className="flex items-center justify-between gap-2">
-              <label className="text-xs font-medium opacity-90">
-                Prioridade
-              </label>
-
-              <button
-                type="button"
-                onClick={handleSuggestPriority}
-                disabled={disabled || aiBusy}
-                className="rounded-lg border border-white/15 bg-white/10 px-2 py-1 text-xs font-semibold hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
-                title="Usa IA para sugerir a prioridade com base no título/descrição"
-              >
-                {aiBusy ? "Sugerindo..." : "Sugerir prioridade"}
-              </button>
-            </div>
-
+            <label className="text-xs font-medium opacity-90">Prioridade</label>
             <select
-              value={priority}
+              value={prioridade}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setPriority(e.target.value as TaskPriority)
+                setPrioridade(e.target.value as PrioridadeAtividade)
               }
               disabled={disabled}
               className={selectClass}
             >
-              {PRIORITY_OPTIONS.map((p) => (
-                <option key={p} value={p} className="text-zinc-900">
-                  {p}
+              {PRIORITY_OPTIONS.map((priorityOption) => (
+                <option
+                  key={priorityOption}
+                  value={priorityOption}
+                  className="text-zinc-900"
+                >
+                  {getPriorityLabel(priorityOption)}
                 </option>
               ))}
             </select>
-
-            {aiReason ? (
-              <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs leading-relaxed opacity-90">
-                <span className="font-semibold">Motivo:</span> {aiReason}
-              </div>
-            ) : null}
           </div>
 
           <div className="grid gap-2">
             <label className="text-xs font-medium opacity-90">Vencimento</label>
             <input
               type="date"
-              value={dueDate}
+              value={dataLimite}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setDueDate(e.target.value)
+                setDataLimite(e.target.value)
               }
               disabled={disabled}
               className={inputClass}
@@ -283,8 +245,8 @@ export default function TaskForm({
                 ? "Salvando..."
                 : "Criando..."
               : isEditMode
-              ? "Salvar alterações"
-              : "Criar tarefa"}
+                ? "Salvar alterações"
+                : "Criar atividade"}
           </button>
 
           {isEditMode ? (

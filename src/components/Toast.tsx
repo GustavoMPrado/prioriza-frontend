@@ -7,7 +7,12 @@ type ToastProps = {
   onClose: () => void;
 };
 
-export default function Toast({ open, message, type = "success", onClose }: ToastProps) {
+export default function Toast({
+  open,
+  message,
+  type = "success",
+  onClose,
+}: ToastProps) {
   if (!open) return null;
 
   const tone =
@@ -31,4 +36,3 @@ export default function Toast({ open, message, type = "success", onClose }: Toas
     </div>
   );
 }
-

@@ -36,7 +36,8 @@ export default function Pagination({ page, totalPages, onPrev, onNext }: Props) 
       </button>
 
       <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs">
-        Página <b className="font-semibold">{safePage + 1}</b> de <b className="font-semibold">{tp}</b>
+        Página <b className="font-semibold">{safePage + 1}</b> de{" "}
+        <b className="font-semibold">{tp}</b>
       </span>
 
       <button
@@ -49,6 +50,5 @@ export default function Pagination({ page, totalPages, onPrev, onNext }: Props) 
     </div>
   );
 }
-
 
 
