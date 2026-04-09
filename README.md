@@ -14,9 +14,9 @@ O objetivo aqui não foi inventar moda, e sim montar uma interface que funcionas
 
 ## Acesso em produção
 
-- **Frontend:** https://gustavomprado.github.io/task-manager-frontend/
-- **API:** https://task-manager-api-njza.onrender.com
-- **Health da API:** https://task-manager-api-njza.onrender.com/actuator/health
+- **Frontend:** https://gustavomprado.github.io/prioriza-frontend/
+- **API:** https://prioriza-api-njza.onrender.com
+- **Health da API:** https://prioriza-api-njza.onrender.com/actuator/health
 
 > Como a API está no plano gratuito do Render, a primeira requisição pode demorar um pouco quando o serviço fica parado.
 
@@ -52,7 +52,7 @@ Quando a autenticação expira ou o token fica inválido, o usuário volta para 
 
 ### Backend
 
-    cd C:\workspace\springboot-api
+    cd C:\workspace\prioriza-api
     docker compose up -d --build
 
 Resultado esperado:
@@ -60,7 +60,7 @@ Resultado esperado:
 
 ### Frontend
 
-    cd C:\workspace\task-manager-frontend
+    cd C:\workspace\prioriza-frontend
     npm install
     npm run dev
 
@@ -73,7 +73,7 @@ Resultado esperado:
 
 Em produção, o frontend usa esta variável para acessar a API:
 
-    VITE_API_URL=https://task-manager-api-njza.onrender.com
+    VITE_API_URL=https://prioriza-api-njza.onrender.com
 
 No ambiente de desenvolvimento, as chamadas `/api/...` são redirecionadas pelo Vite para `http://localhost:8081`.
 
@@ -82,7 +82,7 @@ No ambiente de desenvolvimento, as chamadas `/api/...` são redirecionadas pelo 
 ## Como testar
 
 1. Abra o frontend em produção  
-   https://gustavomprado.github.io/task-manager-frontend/
+   https://gustavomprado.github.io/prioriza-frontend/
 
 2. Faça login
 
@@ -104,8 +104,8 @@ No ambiente de desenvolvimento, as chamadas `/api/...` são redirecionadas pelo 
 
 ## Repositórios
 
-- **Backend:** https://github.com/GustavoMPrado/task-manager-api
-- **Frontend:** https://github.com/GustavoMPrado/task-manager-frontend
+- **Backend:** https://github.com/GustavoMPrado/prioriza-api
+- **Frontend:** https://github.com/GustavoMPrado/prioriza-frontend
 
 ---
 
