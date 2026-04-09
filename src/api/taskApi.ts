@@ -65,7 +65,7 @@ export type LoginResponse = {
   token: string;
 };
 
-const DEFAULT_PROD_API_URL = "https://task-manager-api-njza.onrender.com";
+const DEFAULT_PROD_API_URL = "https://prioriza-api-njza.onrender.com";
 const DEFAULT_DEV_API_URL = "/api";
 
 const baseURL =
